@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path='.env')
 API_KEY = os.getenv('API_KEY')
 CHANNEL_HANDLE = 'MrBeast'
+maxResults = 50
 
 def get_playlist_id():
     try: 
@@ -26,5 +27,35 @@ def get_playlist_id():
         raise e
 
 
+def get_video_id(playlistId):
+    video_ids= []
+    pageToken = None
+    base_url = f'https://youtube.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults={maxResults}&playlistId={playlistId}&key={API_KEY}'
+    try:
+        while True:
+            url = base_url
+
+            if pageToken:
+                url += f"&pageToken={pageToken}" # append url with the token, headers order does not matter
+
+            response = requests.get(url)
+            response.raise_for_status()
+
+            data = response.json()
+            for item in data.get('items', []): # This will return an empty array if there is nothing inside the 'items'
+                video_id = item['contentDetails']['videoId']
+                video_ids.append(video_id)
+            
+            pageToken = data.get('nextPageToken') # same level as items, why we use get method
+
+            if not pageToken:
+                break
+
+            return video_ids
+
+    except requests.exceptions.RequestException as e:
+        raise e
+
 if __name__ == "__main__":
-    get_playlist_id()
+    playlistId = get_playlist_id()
+    get_video_id(playlistId)
