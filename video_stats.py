@@ -51,7 +51,7 @@ def get_video_id(playlistId):
             if not pageToken:
                 break
 
-            return video_ids
+        return video_ids
 
     except requests.exceptions.RequestException as e:
         raise e
